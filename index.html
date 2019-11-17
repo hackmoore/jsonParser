@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="keywords" content="">
+        <meta name="author" content="Ed Moore">
+
+        <title>JSON Parser</title>
+
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+        <style type="text/css">
+            button.square-right{
+                border-bottom-left-radius: 0;
+                border-top-left-radius: 0;
+            }
+            #searchResultContainer, #noResults{
+                text-align: center;
+                margin-top: 20px;
+            }
+            p#searchResultContainer span, #noResults{
+                font-weight: bold;
+                font-size: 1.5em;
+            }
+            p#searchResultContainer span span{
+                font-size: 1.0em;
+            }
+            .hidden {
+                display: none;
+            }
+            #resultContainer{
+                margin-top: 20%;
+            }
+            .disclaimer{
+                margin-top: 20%;
+                text-align: center;
+                font-size: 10px;
+                font-style: italic;
+                color: #999;
+            }
+
+            section{
+                border: 1px solid #e0e0e0;
+                padding: 15px;
+            }
+        </style>
+    </head>
+    <body>
+        <h2 align="center">JSON Parser</h2>
+
+        <div class="container">
+            <div class="row">
+                <did class="col-sm-2"></did>
+                <did class="col-sm-8">
+                    <div class="input-group custom-search-form">
+                        <input type="file" class="form-control" id="jsonFile" autofocus placeholder="Select your JSON file here" accept=".json">
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" type="button" onClick="processJsonFile();">
+                                <span class="fas fa-file-upload"></span>
+                            </button>
+                        </div>
+                    </div>
+                </did>
+                <did class="col-sm-2"></did>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-6">
+                    <h4>Fields to display</h4>
+                    <!-- Select fields -->
+                    <section id="section-select">
+                        <p class="text-muted">Please upload a file first...</p>
+                    </section>
+
+                </div>
+                <div class="col-sm-6">
+                    <!-- Filter fields -->
+                    <h4>Filter by</h4>
+                    <section id="section-filter">
+                        <div class="form-row">
+                            <div class="col"><select trigger="filterText" triggerid="select-filterText0" id="select-filter0"><option>Please select a file first...</option></select></div> LIKE
+                            <div class="col"><input type="text" id="select-filterText0" disabled></div>
+
+                        </div>
+                        <div class="form-row">
+                            <div class="col"><select trigger="filterText" triggerid="select-filterText1" id="select-filter1"><option>Please select a file first...</option></select></div> LIKE
+                            <div class="col"><input type="text" id="select-filterText1" disabled></div>
+
+                        </div>
+                        <div class="form-row">
+                            <div class="col"><select trigger="filterText" triggerid="select-filterText2" id="select-filter2"><option>Please select a file first...</option></select></div> LIKE
+                            <div class="col"><input type="text" id="select-filterText2" disabled></div>
+
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <div class="row">
+                <did class="col-sm-2"></did>
+                <did class="col-sm-8">
+                    <section id="section-results">
+                        <div class="text-center">
+                            <button class="btn btn-primary" type="button" onClick="filterData();"><span class="fas fa-cog"></span> Process Data</button>
+                        </div>
+                        <table id="filterResults" class="table">
+                            <thead>
+
+                            </thead>
+
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </section>
+                </did>
+                <did class="col-sm-2"></did>
+            </div>
+            <div class="row">
+                <div class="col-sm-12">
+                    <p class="disclaimer">This site is not affiliated with anyone.<br>The data used to produce this page is publically available and is provided here with no warranty.<br/>For feedback please contact ed(at)ed-moore.net</p>
+        </div>
+
+
+
+        <!-- Optional JavaScript -->
+        <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha256-+N4/V/SbAFiW1MPBCXnfnP9QSN3+Keu+NlB+0ev/YKQ=" crossorigin="anonymous" />
+
+
+        <script type="text/javascript">
+            const numFilters = 3;
+
+            function processJsonFile(){
+                let jsonText;
+
+                console.log("Starting parsing...");
+
+                if (!window.File || !window.FileReader || !window.FileList || !window.Blob) {
+                    alert('The File APIs are not fully supported in this browser.');
+                    return;
+                }
+
+                const jsonInput = document.getElementById('jsonFile');
+                if( !jsonInput ){
+                    alert("Um, I think this is my bad... Please let me know.");
+                    return;
+                }else if (!jsonInput.files) {
+                    alert("This browser doesn't seem to support the `files` property of file inputs.");
+                    return;
+                }else if (!jsonInput.files[0]) {
+                    alert("Um, did you select a file?");
+                    return;
+                }
+
+                const jsonFile = jsonInput.files[0];
+                const reader = new FileReader();
+
+                reader.onload = (function (theFile) {
+                    return function (e) {
+                        const data = JSON.parse(e.target.result);
+                        processJson(data.data);
+                    }
+                })(jsonFile);
+                reader.readAsText(jsonFile);
+            }
+
+            function processJson(data){
+                console.log(data);
+
+                // let fields = getFields('', data[0]);
+                let fields = getFields(data[0], '.');
+                let optionsHTML = '<option value="">No Filter</option>\n';
+                
+                $("#section-select").html('');
+                $.each(fields, function(i){
+                    $("#section-select").append("<div class='form-check'><input type='checkbox' class='form-check-input' id='select-select" + i + "' value='" + fields[i] + "'><label class='form-check-label' for='select-select" + i + "'>" + fields[i] + "</label></div>");
+                    optionsHTML += "<option>" + fields[i] + "</option>\n";
+                });
+
+
+                for(let i = 0; i < numFilters; i += 1){
+                    $("#select-filter" + i).html(optionsHTML);
+                }
+            }
+
+
+            function getFields(source, delimiter, filter) {
+                var result = []
+                ;(function flat(obj, stack) {
+                    Object.keys(obj).forEach(function(k) {
+                        var s = stack.concat([k])
+                        var v = obj[k]
+                        if (filter && filter(k, v))
+                            return
+
+                        if (typeof v === 'object' && Array.isArray(v) ){
+                            flat(v[0], s)
+                        }else if (typeof v === 'object')
+                            flat(v, s)
+                        else
+                            result.push(s.join(delimiter));
+                    })
+                })(source, [])
+                return result
+            }
+
+            function filterData(){
+                let selects = [];
+                let filters = {};
+
+                // Get all the selects
+                $("#section-select input:checked").each(function(){
+                    selects.push($(this).val());
+                });
+
+                // Get all the filters
+                $("#section-filter select").each(function(){
+                    if( $(this).val() != '' ){
+                        filters[$(this).val()] = $("#" + $(this).attr('triggerid')).val();
+                    }
+                });
+
+                
+
+            }
+
+            function getValue(arr, field){
+                
+
+
+
+
+                // const 
+            }
+
+            $(function(){
+                $("[trigger]").change(function(){
+                    if( $(this).val() == '' ){
+                        $("#" + $(this).attr('triggerid')).prop('disabled', true);
+                    }else{
+                        $("#" + $(this).attr('triggerid')).prop('disabled', false);
+                    }
+                });
+            });
+
+
+
+
+            type Match = Array<KeyValuePair>;
+            type Predicate = (field, value) => boolean;
+            const queryJson = (input, filters) => {
+                const results = [];
+                input.map((a) => {
+                    const fields = getFields(a);
+                    const potentialMatches = depthSearch(null, a, filters);
+                    potentialMatches.map((pm) => {
+                        let totalFound = 0;
+                        filters.map((filter): void => {
+                            const found = pm.predicates.find((pmFilter): boolean => { return pmFilter === filter; });
+                            if (found !== undefined) {
+                                totalFound += 1;
+                            }
+                        });
+                        if (totalFound === filters.length) {
+                            results.push(pm.pairs);
+                        }
+                    });
+                });
+                return results;
+            };
+
+            interface KeyValuePair {
+                key;
+                value;
+            }
+            interface PotentialMatch {
+                pairs;
+                predicates;
+            }
+
+            const depthSearch = (prefix | null, obj, filters) => {
+                let result = [];
+                const baseFields = [];
+                const basePredicates = [];
+
+                if (prefix === "distributors" && obj.id !== undefined && obj.id === 3855) {
+                    console.log("here");
+                }
+
+                Object.keys(obj).map((k ) => {
+                    const v = obj[k];
+                    const fullpath = (prefix === null) ? k : `${prefix}.${k}`;
+
+                    if (typeof v !== "object") {
+                        baseFields.push({
+                            key: fullpath,
+                            value: v,
+                        });
+                        filters.map((filter) => {
+                            if (filter(fullpath, v)) {
+                                basePredicates.push(filter);
+                            }
+                        });
+                    }
+                });
+
+                Object.keys(obj).map((k) => {
+                    const v = obj[k];
+                    const fullpath = (prefix === null) ? k : `${prefix}.${k}`;
+
+                    if (typeof v === "object" && Array.isArray(v)) {
+                        v.map((element) => {
+                            const search = depthSearch(fullpath, element, filters);
+                            result = result.concat(search);
+                        });
+                    }
+                    else if (typeof v === "object") {
+                        const search = depthSearch(fullpath, v, filters);
+                        result = result.concat(search);
+                    }
+                });
+
+                if (result.length > 0) { // If a child started meeting conditions, we want it.
+                    result.map((pm) => {
+                        pm.pairs = pm.pairs.concat(baseFields);
+                        pm.predicates = pm.predicates.concat(basePredicates);
+                    });
+                }
+                else if (basePredicates.length > 0) { // Otherwise base off ourself.
+                    const pm = {
+                        pairs: baseFields,
+                        predicates: basePredicates,
+                    };
+                    result.push(pm);
+                }
+
+                return result;
+            };
+
+            const getFields = (source) => {
+                const result = [];
+                const flat = (obj, stack): void => {
+                    Object.keys(obj).forEach((k) => {
+                        const s = stack.concat([k]);
+                        const v = obj[k];
+
+                        if (typeof v === 'object' && Array.isArray(v) ){
+                            flat(v[0], s);
+                        }
+                        else if (typeof v === 'object') {
+                            flat(v, s);
+                        }
+                        else {
+                            result.push(s.join("."));
+                        }
+                    });
+                };
+                flat(source, []);
+                return result;
+            };
+
+
+
+
+
+
+
+            /*
+            $.getJSON($("#searchBox").val(), function(response){
+                $.each(response.data, function(a){
+                    const country = response.data[a];
+
+                    $.each(country.distributors, function(b){
+                        const distributor = country.distributors[b];
+
+                        if( distributor.description && distributor.description.includes("Public Safety") ){
+                            let str = "";
+                            str += "<tr>";
+                                str += "<td>" + distributor.name + "</td>";
+                                str += "<td>" + country.country_name + "</td>";
+                                str += "<td>" + distributor.state + "</td>";
+                                str += "<td>" + distributor.city + "</td>";
+                                str += "<td>" + distributor.google_coord[0] + "</td>";
+                                str += "<td>" + distributor.google_coord[1] + "</td>";
+                                str += "<td>" + distributor.address + "</td>";
+                            str += "</tr>";
+
+                            $("#results tbody").append(str);
+                        }
+
+                    });
+                });
+            });
+            */
+        </script>
+    </body>
+</html>
