@@ -33,7 +33,10 @@ function processJsonFile(){
     reader.onload = (function (theFile) {
         return function (e) {
             allData = JSON.parse(e.target.result);
-            processJson(allData.data);
+            if( allData.data ){
+                allData = allData.data;
+            }
+            processJson(allData);
         }
     })(jsonFile);
     reader.readAsText(jsonFile);
@@ -96,7 +99,8 @@ function filterData(){
         }
     });
 
-    const matches = queryJson(allData.data, filters);
+
+    const matches = queryJson(allData, filters);
 
     // Remove the fields that aren't required
     for (k1 in matches) {
