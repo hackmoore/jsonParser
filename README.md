@@ -8,4 +8,4 @@ Working example at http://projects.ed-moore.net/jsonFilter
 
 ## Authors
 * [**Ed Moore**](https://github.com/hackmoore) - *Project Development*
-* **Peter Reeves**  - *Matching Algorithm* - 
+* **Peter Reeves**  - *Matching Algorithm* 
