@@ -71,7 +71,7 @@
                 <div class="col-sm-6">
                     <h4>Fields to display</h4>
                     <!-- Select fields -->
-                    <section id="section-select">
+                    <section id="section-select" class="overflow-auto" style="max-height: 500px;">
                         <p class="text-muted">Please upload a file first...</p>
                     </section>
 
@@ -79,7 +79,7 @@
                 <div class="col-sm-6">
                     <!-- Filter fields -->
                     <h4>Filter by</h4>
-                    <section id="section-filter">
+                    <section id="section-filter" class="overflow-auto" style="max-height: 500px;">
                         <div class="form-row">
                             <div class="col"><select trigger="filterText" triggerid="select-filterText0" id="select-filter0"><option>Please select a file first...</option></select></div> LIKE
                             <div class="col"><input type="text" id="select-filterText0" disabled></div>
@@ -99,14 +99,13 @@
                 </div>
             </div>
 
-            <div class="row">
-                <did class="col-sm-2"></did>
-                <did class="col-sm-8">
+            <div class="row mt-2">
+                <did class="col-sm-12 overflow-auto">
                     <section id="section-results">
                         <div class="text-center">
                             <button class="btn btn-primary" type="button" onClick="filterData();"><span class="fas fa-cog"></span> Process Data</button>
                         </div>
-                        <table id="filterResults" class="table">
+                        <table id="results" class="table  mt-1">
                             <thead>
 
                             </thead>
@@ -117,7 +116,6 @@
                         </table>
                     </section>
                 </did>
-                <did class="col-sm-2"></did>
             </div>
             <div class="row">
                 <div class="col-sm-12">
@@ -135,8 +133,10 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha256-+N4/V/SbAFiW1MPBCXnfnP9QSN3+Keu+NlB+0ev/YKQ=" crossorigin="anonymous" />
 
 
+        <script type="text/javascript" src="filter.js"></script>
         <script type="text/javascript">
             const numFilters = 3;
+            let allData;
 
             function processJsonFile(){
                 let jsonText;
@@ -165,16 +165,14 @@
 
                 reader.onload = (function (theFile) {
                     return function (e) {
-                        const data = JSON.parse(e.target.result);
-                        processJson(data.data);
+                        allData = JSON.parse(e.target.result);
+                        processJson(allData.data);
                     }
                 })(jsonFile);
                 reader.readAsText(jsonFile);
             }
 
             function processJson(data){
-                console.log(data);
-
                 // let fields = getFields('', data[0]);
                 let fields = getFields(data[0], '.');
                 let optionsHTML = '<option value="">No Filter</option>\n';
@@ -191,7 +189,7 @@
                 }
             }
 
-
+            /*
             function getFields(source, delimiter, filter) {
                 var result = []
                 ;(function flat(obj, stack) {
@@ -211,34 +209,71 @@
                 })(source, [])
                 return result
             }
+            */
+
+            /*
+                const predicateA = (field: string, value: any): boolean => { return field === "country_code" && value === "ar"; };
+                const predicateB = (field: string, value: any): boolean => { return field === "distributors.id" && (value === 3464 || value === 4056); };
+                const predicateC = (field: string, value: any): boolean => { return field === "distributors.state" && value === "C"; };
+                console.log(queryJson(data, [predicateC]));
+            */
 
             function filterData(){
                 let selects = [];
-                let filters = {};
+                let filters = [];
 
                 // Get all the selects
                 $("#section-select input:checked").each(function(){
                     selects.push($(this).val());
+                    filters.push((field, value) => { return field === $(this).val(); });
                 });
 
                 // Get all the filters
                 $("#section-filter select").each(function(){
                     if( $(this).val() != '' ){
-                        filters[$(this).val()] = $("#" + $(this).attr('triggerid')).val();
+                        // filters[$(this).val()] = $("#" + $(this).attr('triggerid')).val();
+                        filters.push((field, value) => { return field === $(this).val() && value === $("#" + $(this).attr('triggerid')).val();});
+                        // filters.push((field, value) => { return field === "country_code" && value === "ar"; });
                     }
                 });
 
-                
+                const matches = queryJson(allData.data, filters);
 
+                // Remove the fields that aren't required
+                for (k1 in matches) {
+                    for(k2 = matches[k1].length-1; k2 >= 0; k2--){
+                        if( !selects.includes(matches[k1][k2].key) ){
+                            matches[k1].splice(k2, 1);
+                        }
+                    }
+                }
+                console.log(matches);
+                writeResults(matches);
             }
 
-            function getValue(arr, field){
-                
 
+            function writeResults(data){
+                let str = "";
+                $("#results tbody, #results thead").html('');
 
+                for(k1 in data){
+                    str = "<tr>";
+                    for(k2 in data[k1]){
+                        str += "<th>" + data[k1][k2].key + "</th>";
+                    }
+                    str += "</tr>";
+                    $("#results thead").append(str);
+                    break;
+                }
 
-
-                // const 
+                for (k1 in data) {
+                    str = "<tr>";
+                    for (k2 in data[k1]) {
+                        str += "<td>" + data[k1][k2].value + "</td>";
+                    }
+                    str += "</tr>";
+                    $("#results tbody").append(str);
+                }
             }
 
             $(function(){
@@ -250,128 +285,6 @@
                     }
                 });
             });
-
-
-
-
-            type Match = Array<KeyValuePair>;
-            type Predicate = (field, value) => boolean;
-            const queryJson = (input, filters) => {
-                const results = [];
-                input.map((a) => {
-                    const fields = getFields(a);
-                    const potentialMatches = depthSearch(null, a, filters);
-                    potentialMatches.map((pm) => {
-                        let totalFound = 0;
-                        filters.map((filter): void => {
-                            const found = pm.predicates.find((pmFilter): boolean => { return pmFilter === filter; });
-                            if (found !== undefined) {
-                                totalFound += 1;
-                            }
-                        });
-                        if (totalFound === filters.length) {
-                            results.push(pm.pairs);
-                        }
-                    });
-                });
-                return results;
-            };
-
-            interface KeyValuePair {
-                key;
-                value;
-            }
-            interface PotentialMatch {
-                pairs;
-                predicates;
-            }
-
-            const depthSearch = (prefix | null, obj, filters) => {
-                let result = [];
-                const baseFields = [];
-                const basePredicates = [];
-
-                if (prefix === "distributors" && obj.id !== undefined && obj.id === 3855) {
-                    console.log("here");
-                }
-
-                Object.keys(obj).map((k ) => {
-                    const v = obj[k];
-                    const fullpath = (prefix === null) ? k : `${prefix}.${k}`;
-
-                    if (typeof v !== "object") {
-                        baseFields.push({
-                            key: fullpath,
-                            value: v,
-                        });
-                        filters.map((filter) => {
-                            if (filter(fullpath, v)) {
-                                basePredicates.push(filter);
-                            }
-                        });
-                    }
-                });
-
-                Object.keys(obj).map((k) => {
-                    const v = obj[k];
-                    const fullpath = (prefix === null) ? k : `${prefix}.${k}`;
-
-                    if (typeof v === "object" && Array.isArray(v)) {
-                        v.map((element) => {
-                            const search = depthSearch(fullpath, element, filters);
-                            result = result.concat(search);
-                        });
-                    }
-                    else if (typeof v === "object") {
-                        const search = depthSearch(fullpath, v, filters);
-                        result = result.concat(search);
-                    }
-                });
-
-                if (result.length > 0) { // If a child started meeting conditions, we want it.
-                    result.map((pm) => {
-                        pm.pairs = pm.pairs.concat(baseFields);
-                        pm.predicates = pm.predicates.concat(basePredicates);
-                    });
-                }
-                else if (basePredicates.length > 0) { // Otherwise base off ourself.
-                    const pm = {
-                        pairs: baseFields,
-                        predicates: basePredicates,
-                    };
-                    result.push(pm);
-                }
-
-                return result;
-            };
-
-            const getFields = (source) => {
-                const result = [];
-                const flat = (obj, stack): void => {
-                    Object.keys(obj).forEach((k) => {
-                        const s = stack.concat([k]);
-                        const v = obj[k];
-
-                        if (typeof v === 'object' && Array.isArray(v) ){
-                            flat(v[0], s);
-                        }
-                        else if (typeof v === 'object') {
-                            flat(v, s);
-                        }
-                        else {
-                            result.push(s.join("."));
-                        }
-                    });
-                };
-                flat(source, []);
-                return result;
-            };
-
-
-
-
-
-
 
             /*
             $.getJSON($("#searchBox").val(), function(response){

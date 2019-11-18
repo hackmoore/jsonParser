@@ -1,16 +1,12 @@
-
-type Match = Array<KeyValuePair>;
-type Predicate = (field: string, value: any) => boolean;
-
-const queryJson = (input: Array<any>, filters: Array<Predicate>): Array<Match> => {
-    const results: Array<Match> = [];
-    input.map((a: any) => {
+const queryJson = (input, filters) => {
+    const results = [];
+    input.map((a) => {
         const fields = getFields(a);
         const potentialMatches = depthSearch(null, a, filters);
-        potentialMatches.map((pm: PotentialMatch) => {
+        potentialMatches.map((pm) => {
             let totalFound = 0;
-            filters.map((filter: Predicate): void => {
-                const found = pm.predicates.find((pmFilter): boolean => { return pmFilter === filter; });
+            filters.map((filter) => {
+                const found = pm.predicates.find((pmFilter) => { return pmFilter === filter; });
                 if (found !== undefined) {
                     totalFound += 1;
                 }
@@ -22,48 +18,33 @@ const queryJson = (input: Array<any>, filters: Array<Predicate>): Array<Match> =
     });
     return results;
 };
-
-interface KeyValuePair {
-    key: string;
-    value: any;
-}
-interface PotentialMatch {
-    pairs: Array<KeyValuePair>;
-    predicates: Array<Predicate>;
-}
-
-const depthSearch = (prefix: string | null, obj: any, filters: Array<Predicate>): Array<PotentialMatch> => {
-    let result: Array<PotentialMatch> = [];
-    const baseFields: Array<KeyValuePair> = [];
-    const basePredicates: Array<Predicate> = [];
-
-    if( obj == undefined || obj == null ){
+const depthSearch = (prefix, obj, filters) => {
+    let result = [];
+    const baseFields = [];
+    const basePredicates = [];
+    if (obj == undefined || obj == null) {
         return [];
     }
-
-    Object.keys(obj).map((k: string ) => {
+    Object.keys(obj).map((k) => {
         const v = obj[k];
         const fullpath = (prefix === null) ? k : `${prefix}.${k}`;
-
         if (typeof v !== "object") {
             baseFields.push({
                 key: fullpath,
                 value: v,
             });
-            filters.map((filter: Predicate) => {
+            filters.map((filter) => {
                 if (filter(fullpath, v)) {
                     basePredicates.push(filter);
                 }
             });
         }
     });
-
-    Object.keys(obj).map((k: string) => {
+    Object.keys(obj).map((k) => {
         const v = obj[k];
         const fullpath = (prefix === null) ? k : `${prefix}.${k}`;
-
         if (typeof v === "object" && Array.isArray(v)) {
-            v.map((element: any) => {
+            v.map((element) => {
                 const search = depthSearch(fullpath, element, filters);
                 result = result.concat(search);
             });
@@ -73,36 +54,31 @@ const depthSearch = (prefix: string | null, obj: any, filters: Array<Predicate>)
             result = result.concat(search);
         }
     });
-
-    if (result.length > 0) { // If a child started meeting conditions, we want it.
-        result.map((pm: PotentialMatch) => {
+    if (result.length > 0) {
+        result.map((pm) => {
             pm.pairs = pm.pairs.concat(baseFields);
             pm.predicates = pm.predicates.concat(basePredicates);
         });
     }
-    else if (basePredicates.length > 0) { // Otherwise base off ourself.
-        const pm: PotentialMatch = {
+    else if (basePredicates.length > 0) {
+        const pm = {
             pairs: baseFields,
             predicates: basePredicates,
         };
         result.push(pm);
     }
-
     return result;
 };
-
-const getFields = (source: any): Array<string> => {
-    const result: Array<string> = [];
-    const flat = (obj: any, stack: Array<string>): void => {
-        if( obj == undefined || obj == null ){
+const getFields = (source) => {
+    const result = [];
+    const flat = (obj, stack) => {
+        if (obj == undefined || obj == null) {
             return [];
         }
-
-        Object.keys(obj).forEach((k: string) => {
+        Object.keys(obj).forEach((k) => {
             const s = stack.concat([k]);
             const v = obj[k];
-
-            if (typeof v === 'object' && Array.isArray(v) ){
+            if (typeof v === 'object' && Array.isArray(v)) {
                 flat(v[0], s);
             }
             else if (typeof v === 'object') {
@@ -116,3 +92,4 @@ const getFields = (source: any): Array<string> => {
     flat(source, []);
     return result;
 };
+//# sourceMappingURL=filter.js.map
