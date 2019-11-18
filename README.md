@@ -7,5 +7,5 @@ Working example at http://projects.ed-moore.net/jsonFilter
 * The script will look at your JSON file and look for a .data attribute. If this is not present, it will use your entire JSON file instead.
 
 ## Authors
-* **Ed Moore** - *Project Development* - [Hackmoore](https://github.com/hackmoore)
+* [**Ed Moore**](https://github.com/hackmoore) - *Project Development*
 * **Peter Reeves**  - *Matching Algorithm* - 
