@@ -1,0 +1,52 @@
+button.square-right{
+    border-bottom-left-radius: 0;
+    border-top-left-radius: 0;
+}
+#searchResultContainer, #noResults{
+    text-align: center;
+    margin-top: 20px;
+}
+p#searchResultContainer span, #noResults{
+    font-weight: bold;
+    font-size: 1.5em;
+}
+p#searchResultContainer span span{
+    font-size: 1.0em;
+}
+.hidden {
+    display: none;
+}
+#resultContainer{
+    margin-top: 20%;
+}
+
+.disclaimer, .note{
+    font-style: italic;
+    color: #999;
+}
+
+.note{
+    font-size: 12px;
+}
+
+.disclaimer{
+    margin-top: 20%;
+    text-align: center;
+    font-size: 10px;
+    
+}
+
+section{
+    border: 1px solid #e0e0e0;
+    padding: 15px;
+}
+
+.row{
+    margin-top: 10px;
+}
+
+p.version{
+    color: #666;
+    font-style: italic;
+    font-size: 10px;
+}

@@ -12,49 +12,18 @@
 
         <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
-        <style type="text/css">
-            button.square-right{
-                border-bottom-left-radius: 0;
-                border-top-left-radius: 0;
-            }
-            #searchResultContainer, #noResults{
-                text-align: center;
-                margin-top: 20px;
-            }
-            p#searchResultContainer span, #noResults{
-                font-weight: bold;
-                font-size: 1.5em;
-            }
-            p#searchResultContainer span span{
-                font-size: 1.0em;
-            }
-            .hidden {
-                display: none;
-            }
-            #resultContainer{
-                margin-top: 20%;
-            }
-            .disclaimer{
-                margin-top: 20%;
-                text-align: center;
-                font-size: 10px;
-                font-style: italic;
-                color: #999;
-            }
-
-            section{
-                border: 1px solid #e0e0e0;
-                padding: 15px;
-            }
-        </style>
+        <link type="text/css" rel="stylesheet" href="style.css">
     </head>
     <body>
-        <h2 align="center">JSON Parser</h2>
+        <h2 align="center">JSON Parser <p class="version">v1.0b</p></h2>
 
         <div class="container">
+            <h3>Intro.</h3>
+            <p>This is a small web-base service that allows users to provide a json file which is then parsed and filtered on the client side. No data is ever transmitted outside of your browser.</p>
+
             <div class="row">
-                <did class="col-sm-2"></did>
-                <did class="col-sm-8">
+                <div class="col-sm-12">
+                    <h4>1. File upload <i id="step1" class="fas d-none fa-check text-success"></i></h4>
                     <div class="input-group custom-search-form">
                         <input type="file" class="form-control" id="jsonFile" autofocus placeholder="Select your JSON file here" accept=".json">
                         <div class="input-group-append">
@@ -63,13 +32,12 @@
                             </button>
                         </div>
                     </div>
-                </did>
-                <did class="col-sm-2"></did>
+                </div>
             </div>
 
             <div class="row">
                 <div class="col-sm-6">
-                    <h4>Fields to display</h4>
+                    <h4>2. Fields to display <i id="step2" class="fas d-none fa-check text-success"></i></h4>
                     <!-- Select fields -->
                     <section id="section-select" class="overflow-auto" style="max-height: 500px;">
                         <p class="text-muted">Please upload a file first...</p>
@@ -78,8 +46,9 @@
                 </div>
                 <div class="col-sm-6">
                     <!-- Filter fields -->
-                    <h4>Filter by</h4>
+                    <h4>3. Filter by <i id="step3" class="fas d-none fa-check text-success"></i></h4>
                     <section id="section-filter" class="overflow-auto" style="max-height: 500px;">
+                        <p class="note">Fields are matched using Rexeg (also case sensitive). Some good examples are available <a href="https://medium.com/factory-mind/regex-tutorial-a-simple-cheatsheet-by-examples-649dc1c3f285" target="_blank">here</a>.<br>You can use a <code>.*</code> for a wildcard match.</p>
                         <div class="form-row">
                             <div class="col"><select trigger="filterText" triggerid="select-filterText0" id="select-filter0"><option>Please select a file first...</option></select></div> LIKE
                             <div class="col"><input type="text" id="select-filterText0" disabled></div>
@@ -100,7 +69,7 @@
             </div>
 
             <div class="row mt-2">
-                <did class="col-sm-12 overflow-auto">
+                <div class="col-sm-12 overflow-auto">
                     <section id="section-results">
                         <div class="text-center">
                             <button class="btn btn-primary" type="button" onClick="filterData();"><span class="fas fa-cog"></span> Process Data</button>
@@ -115,7 +84,7 @@
                             </tbody>
                         </table>
                     </section>
-                </did>
+                </div>
             </div>
             <div class="row">
                 <div class="col-sm-12">
@@ -134,185 +103,6 @@
 
 
         <script type="text/javascript" src="filter.js"></script>
-        <script type="text/javascript">
-            const numFilters = 3;
-            let allData;
-
-            function processJsonFile(){
-                let jsonText;
-
-                console.log("Starting parsing...");
-
-                if (!window.File || !window.FileReader || !window.FileList || !window.Blob) {
-                    alert('The File APIs are not fully supported in this browser.');
-                    return;
-                }
-
-                const jsonInput = document.getElementById('jsonFile');
-                if( !jsonInput ){
-                    alert("Um, I think this is my bad... Please let me know.");
-                    return;
-                }else if (!jsonInput.files) {
-                    alert("This browser doesn't seem to support the `files` property of file inputs.");
-                    return;
-                }else if (!jsonInput.files[0]) {
-                    alert("Um, did you select a file?");
-                    return;
-                }
-
-                const jsonFile = jsonInput.files[0];
-                const reader = new FileReader();
-
-                reader.onload = (function (theFile) {
-                    return function (e) {
-                        allData = JSON.parse(e.target.result);
-                        processJson(allData.data);
-                    }
-                })(jsonFile);
-                reader.readAsText(jsonFile);
-            }
-
-            function processJson(data){
-                // let fields = getFields('', data[0]);
-                let fields = getFields(data[0], '.');
-                let optionsHTML = '<option value="">No Filter</option>\n';
-                
-                $("#section-select").html('');
-                $.each(fields, function(i){
-                    $("#section-select").append("<div class='form-check'><input type='checkbox' class='form-check-input' id='select-select" + i + "' value='" + fields[i] + "'><label class='form-check-label' for='select-select" + i + "'>" + fields[i] + "</label></div>");
-                    optionsHTML += "<option>" + fields[i] + "</option>\n";
-                });
-
-
-                for(let i = 0; i < numFilters; i += 1){
-                    $("#select-filter" + i).html(optionsHTML);
-                }
-            }
-
-            /*
-            function getFields(source, delimiter, filter) {
-                var result = []
-                ;(function flat(obj, stack) {
-                    Object.keys(obj).forEach(function(k) {
-                        var s = stack.concat([k])
-                        var v = obj[k]
-                        if (filter && filter(k, v))
-                            return
-
-                        if (typeof v === 'object' && Array.isArray(v) ){
-                            flat(v[0], s)
-                        }else if (typeof v === 'object')
-                            flat(v, s)
-                        else
-                            result.push(s.join(delimiter));
-                    })
-                })(source, [])
-                return result
-            }
-            */
-
-            /*
-                const predicateA = (field: string, value: any): boolean => { return field === "country_code" && value === "ar"; };
-                const predicateB = (field: string, value: any): boolean => { return field === "distributors.id" && (value === 3464 || value === 4056); };
-                const predicateC = (field: string, value: any): boolean => { return field === "distributors.state" && value === "C"; };
-                console.log(queryJson(data, [predicateC]));
-            */
-
-            function filterData(){
-                let selects = [];
-                let filters = [];
-
-                // Get all the selects
-                $("#section-select input:checked").each(function(){
-                    selects.push($(this).val());
-                    filters.push((field, value) => { return field === $(this).val(); });
-                });
-
-                // Get all the filters
-                $("#section-filter select").each(function(){
-                    if( $(this).val() != '' ){
-                        // filters[$(this).val()] = $("#" + $(this).attr('triggerid')).val();
-                        filters.push((field, value) => { return field === $(this).val() && value === $("#" + $(this).attr('triggerid')).val();});
-                        // filters.push((field, value) => { return field === "country_code" && value === "ar"; });
-                    }
-                });
-
-                const matches = queryJson(allData.data, filters);
-
-                // Remove the fields that aren't required
-                for (k1 in matches) {
-                    for(k2 = matches[k1].length-1; k2 >= 0; k2--){
-                        if( !selects.includes(matches[k1][k2].key) ){
-                            matches[k1].splice(k2, 1);
-                        }
-                    }
-                }
-                console.log(matches);
-                writeResults(matches);
-            }
-
-
-            function writeResults(data){
-                let str = "";
-                $("#results tbody, #results thead").html('');
-
-                for(k1 in data){
-                    str = "<tr>";
-                    for(k2 in data[k1]){
-                        str += "<th>" + data[k1][k2].key + "</th>";
-                    }
-                    str += "</tr>";
-                    $("#results thead").append(str);
-                    break;
-                }
-
-                for (k1 in data) {
-                    str = "<tr>";
-                    for (k2 in data[k1]) {
-                        str += "<td>" + data[k1][k2].value + "</td>";
-                    }
-                    str += "</tr>";
-                    $("#results tbody").append(str);
-                }
-            }
-
-            $(function(){
-                $("[trigger]").change(function(){
-                    if( $(this).val() == '' ){
-                        $("#" + $(this).attr('triggerid')).prop('disabled', true);
-                    }else{
-                        $("#" + $(this).attr('triggerid')).prop('disabled', false);
-                    }
-                });
-            });
-
-            /*
-            $.getJSON($("#searchBox").val(), function(response){
-                $.each(response.data, function(a){
-                    const country = response.data[a];
-
-                    $.each(country.distributors, function(b){
-                        const distributor = country.distributors[b];
-
-                        if( distributor.description && distributor.description.includes("Public Safety") ){
-                            let str = "";
-                            str += "<tr>";
-                                str += "<td>" + distributor.name + "</td>";
-                                str += "<td>" + country.country_name + "</td>";
-                                str += "<td>" + distributor.state + "</td>";
-                                str += "<td>" + distributor.city + "</td>";
-                                str += "<td>" + distributor.google_coord[0] + "</td>";
-                                str += "<td>" + distributor.google_coord[1] + "</td>";
-                                str += "<td>" + distributor.address + "</td>";
-                            str += "</tr>";
-
-                            $("#results tbody").append(str);
-                        }
-
-                    });
-                });
-            });
-            */
-        </script>
+        <script type="text/javascript" src="main.js"></script>
     </body>
 </html>
