@@ -116,6 +116,11 @@ function writeResults(data){
     let str = "";
     $("#results tbody, #results thead").html('');
 
+    if( data.length == 0 ){
+        $("#results tbody").append("<tr><td class='text-center'>No results found!</td></tr>");
+        return;
+    }
+
     for(k1 in data){
         str = "<tr>";
         for(k2 in data[k1]){
