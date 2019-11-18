@@ -108,6 +108,7 @@ function filterData(){
     }
     console.log(matches);
     writeResults(matches);
+    $("#step4").removeClass('d-none');
 }
 
 
