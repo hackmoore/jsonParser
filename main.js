@@ -4,6 +4,7 @@
 
 const numFilters = 3;
 let allData;
+let filteredData;
 
 function processJsonFile(){
     let jsonText;
@@ -23,7 +24,7 @@ function processJsonFile(){
         alert("This browser doesn't seem to support the `files` property of file inputs.");
         return;
     }else if (!jsonInput.files[0]) {
-        alert("Um, div you select a file?");
+        alert("Um, did you select a file?");
         return;
     }
 
@@ -33,16 +34,30 @@ function processJsonFile(){
     reader.onload = (function (theFile) {
         return function (e) {
             allData = JSON.parse(e.target.result);
-            if( allData.data ){
-                allData = allData.data;
-            }
-            processJson(allData);
         }
     })(jsonFile);
     reader.readAsText(jsonFile);
 
     $("#step1").removeClass('d-none');
+    $("#btn-step2").removeClass('disabled').prop('disabled', false);
 }
+
+function applyPathing(){
+    const path = $("#filterPath").val().split('.');
+    filteredData = allData;
+
+    path.forEach(function(k){
+        filteredData = filteredData[k];
+    });
+
+    if(filteredData === undefined){
+        alert("Invalid Filter Path");
+        return;
+    }
+
+    $("#step2").removeClass('d-none');
+    processJson(filteredData);
+}   
 
 function processJson(data){
     // let fields = getFields('', data[0]);
@@ -94,13 +109,13 @@ function filterData(){
 
             filters.push((field, value) => {
                 let match = value.toString().match(new RegExp(filterValue));
-                return filterField === field && match && value === match[0]; //value.match(new RegExp(filterValue));// === $("#" + $(this).attr('triggerid')).val();
+                return filterField === field && match && value == match[0]; //value.match(new RegExp(filterValue));// === $("#" + $(this).attr('triggerid')).val();
             });
         }
     });
 
 
-    const matches = queryJson(allData, filters);
+    const matches = queryJson(filteredData, filters);
 
     // Remove the fields that aren't required
     for (k1 in matches) {
@@ -112,7 +127,7 @@ function filterData(){
     }
     console.log(matches);
     writeResults(matches);
-    $("#step4").removeClass('d-none');
+    $("#step5").removeClass('d-none');
 }
 
 
@@ -148,9 +163,9 @@ function writeResults(data){
 function bindEvents(){
     // Step 2
     $("#section-select input[type='checkbox']").change(function(){
-        $("#step2").addClass('d-none');
+        $("#step3").addClass('d-none');
         if( $("#section-select input[type='checkbox']:checked").length > 0 ){
-            $("#step2").removeClass('d-none');
+            $("#step3").removeClass('d-none');
         }
     });
 
@@ -165,10 +180,12 @@ function bindEvents(){
         }
 
         // Display tick?
-        $("#step3").addClass('d-none');
+        $("#step4").addClass('d-none');
+        $("#btn-step5").addClass('disabled').prop('disabled', true);
         $("[trigger]").each(function(){
             if( $(this).val() != '' ){
-                $("#step3").removeClass('d-none');
+                $("#step4").removeClass('d-none');
+                $("#btn-step5").removeClass('disabled').prop('disabled', false);
             }
         })
     });

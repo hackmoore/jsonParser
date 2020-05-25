@@ -36,8 +36,22 @@
             </div>
 
             <div class="row">
+                <div class="col-sm-12">
+                    <h4>2. Filter Path <i id="step2" class="fas d-none fa-check text-success"></i></h4>
+                    <div class="input-group custom-search-form">
+                        <input type="text" class="form-control" id="filterPath" placeholder="body">
+                        <div class="input-group-append">
+                            <button class="btn btn-primary disabled" disabled id="btn-step2" type="button" onClick="applyPathing();">
+                                <span class="fas fa-cog"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
                 <div class="col-sm-6">
-                    <h4>2. Fields to display <i id="step2" class="fas d-none fa-check text-success"></i></h4>
+                    <h4>3. Fields to display <i id="step3" class="fas d-none fa-check text-success"></i></h4>
                     <!-- Select fields -->
                     <section id="section-select" class="overflow-auto" style="max-height: 500px;">
                         <p class="text-muted">Please upload a file first...</p>
@@ -46,7 +60,7 @@
                 </div>
                 <div class="col-sm-6">
                     <!-- Filter fields -->
-                    <h4>3. Filter by <i id="step3" class="fas d-none fa-check text-success"></i></h4>
+                    <h4>4. Filter by <i id="step4" class="fas d-none fa-check text-success"></i></h4>
                     <section id="section-filter" class="overflow-auto" style="max-height: 500px;">
                         <p class="note">Fields are matched using Rexeg (also case sensitive). Some good examples are available <a href="https://medium.com/factory-mind/regex-tutorial-a-simple-cheatsheet-by-examples-649dc1c3f285" target="_blank">here</a>.<br>You can use a <code>.*</code> for a wildcard match.</p>
                         <div class="form-row">
@@ -70,10 +84,10 @@
 
             <div class="row mt-2">
                 <div class="col-sm-12 overflow-auto">
-                    <h4>4. Process Data <i id="step4" class="fas d-none fa-check text-success"></i></h4>
+                    <h4>5. Process Data <i id="step5" class="fas d-none fa-check text-success"></i></h4>
                     <section id="section-results">
                         <div class="text-center">
-                            <button class="btn btn-primary" type="button" onClick="filterData();"><span class="fas fa-cog"></span> Process Data</button>
+                            <button class="btn btn-primary disabled" disabled id="btn-step5" type="button" onClick="filterData();"><span class="fas fa-cog"></span> Process Data</button>
                         </div>
                         <table id="results" class="table  mt-1">
                             <thead>
